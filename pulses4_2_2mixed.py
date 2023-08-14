@@ -9,7 +9,7 @@ import os
 import numpy as np 
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-
+from scipy.signal import fftconvolve as fftconvolve
 
 def model(t, a1, mu1, sig1, tau1, a2, mu2, sig2, tau2, a3, mu3, sig3, tau3, a4, mu4, sig4, tau4, w1, w2):
     try:
@@ -25,8 +25,8 @@ def model(t, a1, mu1, sig1, tau1, a2, mu2, sig2, tau2, a3, mu3, sig3, tau3, a4, 
 
     sumdecay1 = w1 * decay_fast1 + decay_slow1
     norm_sumdecay1 = sumdecay1 / max(sumdecay1)
-    flux1 = np.convolve(pulse1, norm_sumdecay1)
-    flux2 = np.convolve(pulse2, norm_sumdecay1)
+    flux1 = fftconvolve(pulse1, norm_sumdecay1)
+    flux2 = fftconvolve(pulse2, norm_sumdecay1)
 
     pulse3 = a3 * np.exp(-.5 * ((t - mu3) / sig3) ** 2)
     pulse4 = a4 * np.exp(-.5 * ((t - mu4) / sig4) ** 2)
@@ -36,8 +36,8 @@ def model(t, a1, mu1, sig1, tau1, a2, mu2, sig2, tau2, a3, mu3, sig3, tau3, a4, 
 
     sumdecay2 = w2 * decay_fast2 + decay_slow2
     norm_sumdecay2 = sumdecay2 / max(sumdecay2)
-    flux3 = np.convolve(pulse3, norm_sumdecay2)
-    flux4 = np.convolve(pulse4, norm_sumdecay2)
+    flux3 = fftconvolve(pulse3, norm_sumdecay2)
+    flux4 = fftconvolve(pulse4, norm_sumdecay2)
 
     t_l = len(t)
     test_signal = (flux1 + flux2 + flux3 + flux4)[0:t_l] +np.min(np.abs(measured_signal2))
@@ -45,7 +45,7 @@ def model(t, a1, mu1, sig1, tau1, a2, mu2, sig2, tau2, a3, mu3, sig3, tau3, a4, 
     return test_signal
 
 
-def p4_2_2m(m_s,m_s_e,freqs, p_times,f_i,f_f,t_i,t_f,ig,ub,lb, plotter=True, f_unit="GHz", b_unit="SFU", t_unit="s",log_scale=False):
+def p4_2_2m(m_s,m_s_e,freqs, p_times,f_i,f_f,t_i,t_f,ig,ub,lb, plotter=True, f_unit="GHz", b_unit="SFU", t_unit="s", log_scale=False, rolling_ig=False):
     def model(t,a1,mu1,sig1,tau1,a2,mu2,sig2,tau2,a3,mu3,sig3,tau3,a4,mu4,sig4,tau4,w1,w2):
     
         pulse1=a1*np.exp(-.5*((t-mu1)/sig1)**2)
@@ -56,8 +56,8 @@ def p4_2_2m(m_s,m_s_e,freqs, p_times,f_i,f_f,t_i,t_f,ig,ub,lb, plotter=True, f_u
         
         sumdecay1 = (w1 * decay_fast1) + (1-w1)*decay_slow1
         norm_sumdecay1=sumdecay1/max(sumdecay1)
-        flux1=np.convolve(pulse1, norm_sumdecay1)
-        flux2=np.convolve(pulse2, norm_sumdecay1)
+        flux1=fftconvolve(pulse1, norm_sumdecay1)
+        flux2=fftconvolve(pulse2, norm_sumdecay1)
             
         
         pulse3=a3*np.exp(-.5*((t -mu3)/sig3)**2)
@@ -69,8 +69,8 @@ def p4_2_2m(m_s,m_s_e,freqs, p_times,f_i,f_f,t_i,t_f,ig,ub,lb, plotter=True, f_u
         
         sumdecay2 = (w2 * decay_fast2) + (1-w2)*decay_slow2
         norm_sumdecay2=sumdecay2/max(sumdecay2)
-        flux3=np.convolve(pulse3, norm_sumdecay2)
-        flux4=np.convolve(pulse4, norm_sumdecay2)
+        flux3=fftconvolve(pulse3, norm_sumdecay2)
+        flux4=fftconvolve(pulse4, norm_sumdecay2)
 
         t_l = len(t)
         test_signal = (flux1 + flux2 + flux3 + flux4)[0:t_l] +np.min(np.abs(measured_signal2))
@@ -144,6 +144,7 @@ def p4_2_2m(m_s,m_s_e,freqs, p_times,f_i,f_f,t_i,t_f,ig,ub,lb, plotter=True, f_u
 
             
             ans,cov = fit
+            if rolling_ig: ig = ans
         
             fit_a1,fit_mu1,fit_sig1,fit_tau1,fit_a2,fit_mu2,fit_sig2,fit_tau2,fit_a3,fit_mu3,fit_sig3,fit_tau3,fit_a4,fit_mu4,fit_sig4,fit_tau4, fit_w1,fit_w2 = ans
             fit_sa1,fit_smu1,fit_ssig1,fit_stau1,fit_sa2,fit_smu2,fit_ssig2,fit_stau2,fit_sa3,fit_smu3,fit_ssig3,fit_stau3,fit_sa4,fit_smu4,fit_ssig4,fit_stau4, fit_sw1, fit_sw2 = np.sqrt(np.diag(cov))
@@ -164,8 +165,8 @@ def p4_2_2m(m_s,m_s_e,freqs, p_times,f_i,f_f,t_i,t_f,ig,ub,lb, plotter=True, f_u
             sumdecay1= fit_w1*decay_fast1+decay_slow1
             norm_sumdecay1=sumdecay1/max(sumdecay1)
             
-            flux1=np.convolve(pulse1, norm_sumdecay1)
-            flux2=np.convolve(pulse2, norm_sumdecay1)
+            flux1=fftconvolve(pulse1, norm_sumdecay1)
+            flux2=fftconvolve(pulse2, norm_sumdecay1)
             
             
             pulse3=fit_a3*np.exp(-.5*((time-fit_mu3)/fit_sig3)**2)
@@ -177,8 +178,8 @@ def p4_2_2m(m_s,m_s_e,freqs, p_times,f_i,f_f,t_i,t_f,ig,ub,lb, plotter=True, f_u
             sumdecay2= fit_w2*decay_fast2+decay_slow2
             norm_sumdecay2=sumdecay2/max(sumdecay2)
             
-            flux3=np.convolve(pulse3, norm_sumdecay2)
-            flux4=np.convolve(pulse4, norm_sumdecay2)
+            flux3=fftconvolve(pulse3, norm_sumdecay2)
+            flux4=fftconvolve(pulse4, norm_sumdecay2)
             
             
             
@@ -527,4 +528,4 @@ def p4_2_2m(m_s,m_s_e,freqs, p_times,f_i,f_f,t_i,t_f,ig,ub,lb, plotter=True, f_u
             pass
 
     else:
-        return ans, xirs[1]
+        return ans, xirs[1], cov

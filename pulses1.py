@@ -9,6 +9,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+from scipy.signal import fftconvolve as fftconvolve
 
 
 def model(t, a1, mu1, sig1, tau1):
@@ -19,14 +20,14 @@ def model(t, a1, mu1, sig1, tau1):
     pulse1 = a1 * np.exp(-.5 * ((t - mu1) / sig1) ** 2)
     decay1 = np.exp(-t / tau1)
     t_l = len(t)
-    flux1 = np.convolve(pulse1, decay1,mode='full')
+    flux1 = fftconvolve(pulse1, decay1,mode='full')
 
     test_signal = flux1[0:t_l] + np.min(np.abs(measured_signal2))
 
     return test_signal
 
 
-def p1(m_s, m_s_e, freqs, p_times, f_i, f_f, t_i, t_f, ig, ub, lb, plotter=True, f_unit="GHz", b_unit="SFU", t_unit="s",log_scale=False):
+def p1(m_s, m_s_e, freqs, p_times, f_i, f_f, t_i, t_f, ig, ub, lb, plotter=True, f_unit="GHz", b_unit="SFU", t_unit="s", log_scale=False, rolling_ig=False):
 
 
     f_w = f_f - f_i
@@ -41,7 +42,7 @@ def p1(m_s, m_s_e, freqs, p_times, f_i, f_f, t_i, t_f, ig, ub, lb, plotter=True,
 
         pulse1 = a1 * np.exp(-.5 * ((t - mu1) / sig1) ** 2)
         decay1 = np.exp(-t / tau1)
-        flux1 = np.convolve(pulse1, decay1,mode='full')
+        flux1 = fftconvolve(pulse1, decay1,mode='full')
         t_l=len(t)
 
         test_signal = flux1[0:t_l] + np.min(np.abs(measured_signal2))
@@ -95,6 +96,7 @@ def p1(m_s, m_s_e, freqs, p_times, f_i, f_f, t_i, t_f, ig, ub, lb, plotter=True,
 
             results = np.array([fit_a1, fit_mu1, fit_sig1, fit_tau1])
             results_error = np.array([fit_sa1, fit_smu1, fit_ssig1, fit_stau1])
+            if rolling_ig: ig=ans
 
             result[:, f - f_i] = results
             result_error[:, f - f_i] = results_error
@@ -107,7 +109,7 @@ def p1(m_s, m_s_e, freqs, p_times, f_i, f_f, t_i, t_f, ig, ub, lb, plotter=True,
 
             current_mdl = model(time, fit_a1, fit_mu1, fit_sig1, fit_tau1)[0:s_l]
             diff = measured_signal2[0:s_l] - current_mdl
-            xi1 = diff ** 2 / (l * measured_signal2e[0:s_l])
+            xi1 = diff ** 2 / (l * measured_signal2e[0:s_l])**2
             # xi1[56:60]=0
             xir = np.sum(xi1) / (s_l - len(ans))
             xirs[f-f_i] = xir
@@ -130,6 +132,7 @@ def p1(m_s, m_s_e, freqs, p_times, f_i, f_f, t_i, t_f, ig, ub, lb, plotter=True,
         except:
             pass
         #### outlier scan ####
+
 
     if plotter:
         if oddflag:
@@ -230,6 +233,8 @@ def p1(m_s, m_s_e, freqs, p_times, f_i, f_f, t_i, t_f, ig, ub, lb, plotter=True,
             plt.savefig(pref + '_Pulse_1_spectrumflux_.png')
             plt.close()
 
+
+
             fig, ax = plt.subplots(1, 1, figsize=(16, 10))
             ax.plot(xirs[0:f_w], label="Reduced Xi^2")
             ax.set_title('Reduced Xi^2')
@@ -293,6 +298,20 @@ def p1(m_s, m_s_e, freqs, p_times, f_i, f_f, t_i, t_f, ig, ub, lb, plotter=True,
         except:
             print(" ")
 
+    #import copy
+    #for t in range(t_i, t_f, 1):
+        #fig, ax = plt.subplots(1, 1, figsize=(16, 10))
+        #m_s_temp = copy.deepcopy(np.transpose(m_s[t_i:t_f, f_i:f_f]))
+        #m_s_temp[:, t] = 0
+        #ax.pcolormesh(m_s_temp)
+        #ax.set_yticks(ticks)
+        #ax.set_yticklabels(fl[ticks + f_i])
+        #ax.set_title('Pulse 1 Flux')
+        #ax.set_ylabel('Freq (' + f_unit + ')')
+        #ax.set_xlabel('Time (' + t_unit + ')')
+        #plt.savefig(pref + '_Pulse_real_spectrumflux_t' + str(t) + '.png', dpi=50)
+        #plt.close()
+
     else:
-        return ans, xir
+        return ans, xir, cov
 

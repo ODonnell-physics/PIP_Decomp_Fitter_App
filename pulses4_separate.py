@@ -9,7 +9,7 @@ import os
 import numpy as np 
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-
+from scipy.signal import fftconvolve as fftconvolve
 
 def model(t, a1, mu1, sig1, tau1, a2, mu2, sig2, tau2, a3, mu3, sig3, tau3, a4, mu4, sig4, tau4):
     try:
@@ -20,19 +20,19 @@ def model(t, a1, mu1, sig1, tau1, a2, mu2, sig2, tau2, a3, mu3, sig3, tau3, a4, 
 
     pulse1 = a1 * np.exp(-.5 * ((t - mu1) / sig1) ** 2)
     decay1 = np.exp(-(t) / tau1)
-    flux1 = np.convolve(pulse1, decay1)
+    flux1 = fftconvolve(pulse1, decay1)
 
     pulse2 = a2 * np.exp(-.5 * ((t - mu2) / sig2) ** 2)
     decay2 = np.exp(-(t) / tau2)
-    flux2 = np.convolve(pulse2, decay2)
+    flux2 = fftconvolve(pulse2, decay2)
 
     pulse3 = a3 * np.exp(-.5 * ((t - mu3) / sig3) ** 2)
     decay3 = np.exp(-(t) / tau3)
-    flux3 = np.convolve(pulse3, decay3)
+    flux3 = fftconvolve(pulse3, decay3)
 
     pulse4 = a4 * np.exp(-.5 * ((t - mu4) / sig4) ** 2)
     decay4 = np.exp(-(t) / tau4)
-    flux4 = np.convolve(pulse4, decay4)
+    flux4 = fftconvolve(pulse4, decay4)
 
     t_l = len(t)
     test_signal = (flux1 + flux2 + flux3 + flux4)[0:t_l] +np.min(np.abs(measured_signal2))
@@ -40,26 +40,26 @@ def model(t, a1, mu1, sig1, tau1, a2, mu2, sig2, tau2, a3, mu3, sig3, tau3, a4, 
     return test_signal
 
 
-def p4_s(m_s,m_s_e,freqs,p_times,f_i,f_f,t_i,t_f,ig,ub,lb, plotter=True, f_unit="GHz", b_unit="SFU", t_unit="s",log_scale=False):
+def p4_s(m_s,m_s_e,freqs,p_times,f_i,f_f,t_i,t_f,ig,ub,lb, plotter=True, f_unit="GHz", b_unit="SFU", t_unit="s", log_scale=False, rolling_ig=False):
 
     def model(t,a1,mu1,sig1,tau1,a2,mu2,sig2,tau2,a3,mu3,sig3,tau3,a4,mu4,sig4,tau4):#model_4pulse_seperate(t,a1,mu1,sig1,tau1,a2,mu2,sig2,tau2,a3,mu3,sig3,tau3,a4,mu4,sig4,tau4):
     
         pulse1=a1*np.exp(-.5*((t-mu1)/sig1)**2)
         decay1=np.exp(-(t)/tau1)
-        flux1=np.convolve(pulse1, decay1)
+        flux1=fftconvolve(pulse1, decay1)
             
         pulse2=a2*np.exp(-.5*((t-mu2)/sig2)**2)
         decay2=np.exp(-(t)/tau2)    
-        flux2=np.convolve(pulse2, decay2)
+        flux2=fftconvolve(pulse2, decay2)
     
         
         pulse3=a3*np.exp(-.5*((t -mu3)/sig3)**2)
         decay3=np.exp(-(t)/tau3)
-        flux3=np.convolve(pulse3, decay3)
+        flux3=fftconvolve(pulse3, decay3)
         
         pulse4=a4*np.exp(-.5*((t -mu4)/sig4)**2)
         decay4=np.exp(-(t)/tau4)
-        flux4=np.convolve(pulse4, decay4)
+        flux4=fftconvolve(pulse4, decay4)
 
         t_l = len(t)
         test_signal=(flux1+flux2+flux3+flux4)[0:t_l]+np.min(np.abs(measured_signal2))
@@ -130,6 +130,7 @@ def p4_s(m_s,m_s_e,freqs,p_times,f_i,f_f,t_i,t_f,ig,ub,lb, plotter=True, f_unit=
 
             
             ans,cov = fit
+            if rolling_ig: ig = ans
         
             fit_a1,fit_mu1,fit_sig1,fit_tau1,fit_a2,fit_mu2,fit_sig2,fit_tau2,fit_a3,fit_mu3,fit_sig3,fit_tau3,fit_a4,fit_mu4,fit_sig4,fit_tau4 = ans
             fit_sa1,fit_smu1,fit_ssig1,fit_stau1,fit_sa2,fit_smu2,fit_ssig2,fit_stau2,fit_sa3,fit_smu3,fit_ssig3,fit_stau3,fit_sa4,fit_smu4,fit_ssig4,fit_stau4 = np.sqrt(np.diag(cov))
@@ -143,21 +144,21 @@ def p4_s(m_s,m_s_e,freqs,p_times,f_i,f_f,t_i,t_f,ig,ub,lb, plotter=True, f_unit=
             
             pulse1=fit_a1*np.exp(-.5*((time-fit_mu1)/fit_sig1)**2)
             decay1=np.exp(-(time)/fit_tau1)
-            flux1=np.convolve(pulse1, decay1)
+            flux1=fftconvolve(pulse1, decay1)
             
             
             pulse2=fit_a2*np.exp(-.5*((time-fit_mu2)/fit_sig2)**2)
             decay2=np.exp(-(time)/fit_tau2)    
-            flux2=np.convolve(pulse2, decay2)
+            flux2=fftconvolve(pulse2, decay2)
                         
             
             pulse3=fit_a3*np.exp(-.5*((time -fit_mu3)/fit_sig3)**2)
             decay3=np.exp(-(time)/fit_tau3)
-            flux3=np.convolve(pulse3, decay3)
+            flux3=fftconvolve(pulse3, decay3)
             
             pulse4=fit_a4*np.exp(-.5*((time -fit_mu4)/fit_sig4)**2)
             decay4=np.exp(-(time)/fit_tau4)
-            flux4=np.convolve(pulse4, decay4)
+            flux4=fftconvolve(pulse4, decay4)
         
             
 
@@ -508,4 +509,4 @@ def p4_s(m_s,m_s_e,freqs,p_times,f_i,f_f,t_i,t_f,ig,ub,lb, plotter=True, f_unit=
         except:
             pass
     else:
-        return ans, xirs[1]
+        return ans, xirs[1], cov

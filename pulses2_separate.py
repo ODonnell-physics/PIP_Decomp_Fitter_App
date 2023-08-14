@@ -10,7 +10,7 @@ import os
 import numpy as np 
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-
+from scipy.signal import fftconvolve as fftconvolve
 
 def model(t, a1, mu1, sig1, tau1, a2, mu2, sig2, tau2):
     try:
@@ -20,11 +20,11 @@ def model(t, a1, mu1, sig1, tau1, a2, mu2, sig2, tau2):
 
     pulse1 = a1 * np.exp(-.5 * ((t - mu1) / sig1) ** 2)
     decay1 = np.exp(-(t) / tau1)
-    flux1 = np.convolve(pulse1, decay1)
+    flux1 = fftconvolve(pulse1, decay1)
 
     pulse2 = a2 * np.exp(-.5 * ((t - mu2) / sig2) ** 2)
     decay2 = np.exp(-(t) / tau2)
-    flux2 = np.convolve(pulse2, decay2)
+    flux2 = fftconvolve(pulse2, decay2)
 
     t_l=len(t)
 
@@ -32,17 +32,17 @@ def model(t, a1, mu1, sig1, tau1, a2, mu2, sig2, tau2):
 
     return test_signal
 
-def p2_s(m_s,m_s_e,freqs,p_times,f_i,f_f,t_i,t_f,ig,ub,lb,plotter=True, f_unit="GHz", b_unit="SFU", t_unit="s",log_scale=False):
+def p2_s(m_s,m_s_e,freqs,p_times,f_i,f_f,t_i,t_f,ig,ub,lb,plotter=True, f_unit="GHz", b_unit="SFU", t_unit="s", log_scale=False, rolling_ig=False):
     
     def model(t,a1,mu1,sig1,tau1,a2,mu2,sig2,tau2):
         pulse1=a1*np.exp(-.5*((t-mu1)/sig1)**2)
         decay1=np.exp(-(t)/tau1)
-        flux1=np.convolve(pulse1, decay1)
+        flux1=fftconvolve(pulse1, decay1)
         
         
         pulse2=a2*np.exp(-.5*((t-mu2)/sig2)**2)
         decay2=np.exp(-(t)/tau2)    
-        flux2=np.convolve(pulse2, decay2)
+        flux2=fftconvolve(pulse2, decay2)
 
         t_l = len(t)
     
@@ -99,6 +99,7 @@ def p2_s(m_s,m_s_e,freqs,p_times,f_i,f_f,t_i,t_f,ig,ub,lb,plotter=True, f_unit="
             ans,cov = fit
             fit_a1,fit_mu1,fit_sig1,fit_tau1,fit_a2,fit_mu2,fit_sig2,fit_tau2 = ans
             fit_sa1,fit_smu1,fit_ssig1,fit_stau1,fit_sa2,fit_smu2,fit_ssig2,fit_stau2 = np.sqrt(np.diag(cov))
+            if rolling_ig: ig = ans
         
         
             results=np.array([fit_a1,fit_mu1,fit_sig1,fit_tau1,fit_a2,fit_mu2,fit_sig2,fit_tau2])
@@ -122,8 +123,8 @@ def p2_s(m_s,m_s_e,freqs,p_times,f_i,f_f,t_i,t_f,ig,ub,lb,plotter=True, f_unit="
 
             decay1 = np.exp(-(time) / fit_tau1)
             decay2 = np.exp(-(time) / fit_tau2)
-            flux1 = np.convolve(pulse1, decay1)
-            flux2 = np.convolve(pulse2, decay2)
+            flux1 = fftconvolve(pulse1, decay1)
+            flux2 = fftconvolve(pulse2, decay2)
 
             flux1_spec[f-f_i, :] = flux1[0:s_l]
             flux2_spec[f-f_i, :] = flux2[0:s_l]
@@ -385,4 +386,4 @@ def p2_s(m_s,m_s_e,freqs,p_times,f_i,f_f,t_i,t_f,ig,ub,lb,plotter=True, f_unit="
         except:
             print(" ")
     else:
-        return ans, xir
+        return ans, xir, cov

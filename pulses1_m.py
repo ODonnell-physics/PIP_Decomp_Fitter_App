@@ -22,12 +22,12 @@ def model(t, a1, mu1, sig1, tau1,tau2,w):
     flux1 = np.convolve(pulse1, sumdecay)#norm_sumdecay)
     t_l = len(t)
 
-    test_signal = flux1[0:t_l] + measured_signal2[0]
+    test_signal = flux1[0:t_l] + np.min(np.abs(measured_signal2))
 
     return test_signal
 
 
-def p1_m(m_s, m_s_e, freqs,p_times, f_i, f_f, t_i, t_f, ig, ub, lb, plotter=True, f_unit="GHz", b_unit="SFU", t_unit="s",log_scale=False):
+def p1_m(m_s, m_s_e, freqs,p_times, f_i, f_f, t_i, t_f, ig, ub, lb, plotter=True, f_unit="GHz", b_unit="SFU", t_unit="s", log_scale=False, rolling_ig=False):
     f_w = f_f - f_i
     s_l = t_f - t_i
     s_l_=s_l
@@ -35,6 +35,22 @@ def p1_m(m_s, m_s_e, freqs,p_times, f_i, f_f, t_i, t_f, ig, ub, lb, plotter=True
     pulse1_spec = np.zeros([f_w, s_l_])
     flux1_spec = np.zeros([f_w, s_l_])
 
+    def model(t, a1, mu1, sig1, tau1, tau2, w):
+
+        pulse1 = a1 * np.exp(-.5 * ((t - mu1) / sig1) ** 2)
+
+        decay1 = np.exp(-t / tau1)
+        decay2 = np.exp(-t / tau2)
+
+        sumdecay = (w * decay1) + (1 - w) * decay2
+        # norm_sumdecay = sumdecay / max(sumdecay)
+
+        flux1 = np.convolve(pulse1, sumdecay)  # norm_sumdecay)
+        t_l = len(t)
+
+        test_signal = flux1[0:t_l] + np.min(np.abs(measured_signal2))
+
+        return test_signal
 
     fl = np.around(freqs, 2)
 
@@ -44,7 +60,7 @@ def p1_m(m_s, m_s_e, freqs,p_times, f_i, f_f, t_i, t_f, ig, ub, lb, plotter=True
         if not os.path.exists('./1_m_pulse_fit'):
             os.makedirs('./1_m_pulse_fit')
 
-    pref = './1_m_pulse_fit/1_m__'
+    pref = './1_m_pulse_fit/1_m_'
 
     xirs = np.zeros([f_w])
     result = np.zeros([6, f_w])
@@ -79,6 +95,7 @@ def p1_m(m_s, m_s_e, freqs,p_times, f_i, f_f, t_i, t_f, ig, ub, lb, plotter=True
             ans, cov = fit
             fit_a1, fit_mu1, fit_sig1, fit_tau1, fit_tau2, fit_w = ans
             fit_sa1, fit_smu1, fit_ssig1, fit_stau1, fit_stau2, fit_sw = np.sqrt(np.diag(cov))
+            if rolling_ig: ig = ans
 
             results = np.array([fit_a1, fit_mu1, fit_sig1, fit_tau1, fit_tau2, fit_w])
             results_e = np.array([fit_sa1, fit_smu1, fit_ssig1, fit_stau1, fit_stau2, fit_sw])
@@ -101,7 +118,7 @@ def p1_m(m_s, m_s_e, freqs,p_times, f_i, f_f, t_i, t_f, ig, ub, lb, plotter=True
 
             if plotter:
 
-                plt.plot(pulse1 + measured_signal2[0], '--', label="Fit Pulse 1")
+                plt.plot(pulse1 + + np.min(np.abs(measured_signal2)), '--', label="Fit Pulse 1")
 
                 plt.plot(measured_signal2,'.', label="Eovsa", color='red')
                 plt.plot(flux1, color='black', label="Fit")
@@ -282,4 +299,4 @@ def p1_m(m_s, m_s_e, freqs,p_times, f_i, f_f, t_i, t_f, ig, ub, lb, plotter=True
             print(" ")
 
     else:
-        return ans, xirs[1]
+        return ans, xirs[1], cov

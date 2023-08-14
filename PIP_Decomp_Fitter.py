@@ -471,6 +471,10 @@ class Ui_PIP_Decomp_Fitter(QtWidgets.QWidget):
         self.label_log_scale.setGeometry(QtCore.QRect(50, 390, 81, 20))
         self.label_log_scale.setObjectName("Log_Scale")
 
+        self.label_rolling_ig= QtWidgets.QLabel(self.centralwidget)
+        self.label_rolling_ig.setGeometry(QtCore.QRect(140, 390, 81, 20))
+        self.label_rolling_ig.setObjectName("rolling_ig")
+
         self.inp_samp_freq = QtWidgets.QTextEdit(self.centralwidget)
         self.inp_samp_freq.setGeometry(QtCore.QRect(340, 430, 31, 31))
         self.inp_samp_freq.setObjectName("inp_samp_freq")
@@ -480,6 +484,11 @@ class Ui_PIP_Decomp_Fitter(QtWidgets.QWidget):
         self.modee_log_scale_check .setGeometry(QtCore.QRect(30, 390, 81, 20))
         self.modee_log_scale_check .setObjectName("modee_log_scale_check")
         self.modee_log_scale_check .setChecked(False)
+
+        self.modee_rolling_ig_check = QtWidgets.QCheckBox(self.centralwidget)
+        self.modee_rolling_ig_check .setGeometry(QtCore.QRect(120, 390, 81, 20))
+        self.modee_rolling_ig_check .setObjectName("modee_rolling_ig_check")
+        self.modee_rolling_ig_check .setChecked(False)
 
 
         self.modee_radioButton_1p = QtWidgets.QRadioButton(self.centralwidget)
@@ -674,6 +683,7 @@ class Ui_PIP_Decomp_Fitter(QtWidgets.QWidget):
         self.pushButton_New_File.raise_()
 
         self.modee_log_scale_check.raise_()
+        self.modee_rolling_ig_check.raise_()
         self.modee_radioButton_1p.raise_()
         self.modee_radioButton_1p_m.raise_()
         self.modee_radioButton_2p_s.raise_()
@@ -739,6 +749,7 @@ class Ui_PIP_Decomp_Fitter(QtWidgets.QWidget):
 
             if self.modee_log_scale_check.isChecked(): self._static_ax.set_yscale("log")
             if self.modee_log_scale_check.isChecked()==False: self._static_ax.set_yscale("linear")
+
 
 
             if self.modee_radioButton_1p.isChecked():
@@ -1085,7 +1096,7 @@ class Ui_PIP_Decomp_Fitter(QtWidgets.QWidget):
 
 
             f_check=min([np.size(m_s,1),np.size(freqs,0),np.size(m_s_e,1)])
-            t_check=min([np.size(m_s,0),np.size(m_s_e,0)])
+            t_check=min([np.size(m_s,0),np.size(m_s_e,0)])-1
 
             if int(self.inp_Freq_range_max.toPlainText()) > f_check:
                 self.inp_Freq_range_max.setText(str(f_check))
@@ -1360,6 +1371,8 @@ class Ui_PIP_Decomp_Fitter(QtWidgets.QWidget):
 
             if self.modee_log_scale_check.isChecked(): log_scale=True
             if self.modee_log_scale_check.isChecked()==False: log_scale=False
+            if self.modee_rolling_ig_check.isChecked(): rolling_ig=True
+            if self.modee_rolling_ig_check.isChecked()== False: rolling_ig=False
 
             m_s, m_s_e, freqs, p_times = load_data(self)
             guess, min_g, max_g = check_guess()
@@ -1412,51 +1425,51 @@ class Ui_PIP_Decomp_Fitter(QtWidgets.QWidget):
 
             if self.modee_radioButton_1p.isChecked():
                 print("Fitting as 1 Pulse")
-                p1.p1(m_s=m_s, m_s_e=m_s_e, freqs=freqs,p_times=p_times, f_i=f_i, f_f=f_f, t_i=t_i, t_f=t_f, ig=init_guess_1pulse, ub=ub_1pulse, lb=lb_1pulse, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale)
+                p1.p1(m_s=m_s, m_s_e=m_s_e, freqs=freqs,p_times=p_times, f_i=f_i, f_f=f_f, t_i=t_i, t_f=t_f, ig=init_guess_1pulse, ub=ub_1pulse, lb=lb_1pulse, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale,rolling_ig=rolling_ig)
 
             if self.modee_radioButton_1p_m.isChecked():
                 print("Fitting as 1 Pulse")
-                p1_m.p1_m(m_s=m_s, m_s_e=m_s_e, freqs=freqs,p_times=p_times, f_i=f_i, f_f=f_f, t_i=t_i, t_f=t_f, ig=init_guess_1pulse_mixed, ub=ub_1pulse_mixed, lb=lb_1pulse_mixed, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale)
+                p1_m.p1_m(m_s=m_s, m_s_e=m_s_e, freqs=freqs,p_times=p_times, f_i=f_i, f_f=f_f, t_i=t_i, t_f=t_f, ig=init_guess_1pulse_mixed, ub=ub_1pulse_mixed, lb=lb_1pulse_mixed, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale,rolling_ig=rolling_ig)
 
             if self.modee_radioButton_2p_s.isChecked():
                 print("Fitting as 2 Separate Pulses")
-                p2_s.p2_s(m_s=m_s, m_s_e=m_s_e, freqs=freqs,p_times=p_times, f_i=f_i, f_f=f_f, t_i=t_i, t_f=t_f, ig=init_guess_2pulse_separate, ub=ub_2pulse_separate, lb=lb_2pulse_separate, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale)
+                p2_s.p2_s(m_s=m_s, m_s_e=m_s_e, freqs=freqs,p_times=p_times, f_i=f_i, f_f=f_f, t_i=t_i, t_f=t_f, ig=init_guess_2pulse_separate, ub=ub_2pulse_separate, lb=lb_2pulse_separate, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale,rolling_ig=rolling_ig)
 
             if self.modee_radioButton_2p_m.isChecked():
                 print("Fitting as 2 Pulses with mixed decays")
-                p2_2m.p2_2m(m_s=m_s,m_s_e=m_s_e,freqs=freqs,p_times=p_times,f_i=f_i,f_f=f_f,t_i=t_i,t_f=t_f,ig=init_guess_2pulse_mixed,ub=ub_2pulse_mixed,lb=lb_2pulse_mixed, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale)
+                p2_2m.p2_2m(m_s=m_s,m_s_e=m_s_e,freqs=freqs,p_times=p_times,f_i=f_i,f_f=f_f,t_i=t_i,t_f=t_f,ig=init_guess_2pulse_mixed,ub=ub_2pulse_mixed,lb=lb_2pulse_mixed, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale,rolling_ig=rolling_ig)
 
             if self.modee_radioButton_3p_s.isChecked():
                 print("Fitting as 3 Separate Pulses")
-                p3_s.p3_s(m_s=m_s,m_s_e=m_s_e,freqs=freqs,p_times=p_times,f_i=f_i,f_f=f_f,t_i=t_i,t_f=t_f,ig=init_guess_3pulse_separate,ub=ub_3pulse_separate,lb=lb_3pulse_separate, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale)
+                p3_s.p3_s(m_s=m_s,m_s_e=m_s_e,freqs=freqs,p_times=p_times,f_i=f_i,f_f=f_f,t_i=t_i,t_f=t_f,ig=init_guess_3pulse_separate,ub=ub_3pulse_separate,lb=lb_3pulse_separate, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale,rolling_ig=rolling_ig)
 
             if self.modee_radioButton_3p_2m.isChecked():
                 print("Fitting as 3 Pulses 2 of which have mixed decays")
-                p3_2m.p3_2m(m_s=m_s,m_s_e=m_s_e,freqs=freqs,p_times=p_times,f_i=f_i,f_f=f_f,t_i=t_i,t_f=t_f,ig=init_guess_3pulse_2mixed,ub=ub_3pulse_2mixed,lb=lb_3pulse_2mixed, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale)
+                p3_2m.p3_2m(m_s=m_s,m_s_e=m_s_e,freqs=freqs,p_times=p_times,f_i=f_i,f_f=f_f,t_i=t_i,t_f=t_f,ig=init_guess_3pulse_2mixed,ub=ub_3pulse_2mixed,lb=lb_3pulse_2mixed, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale,rolling_ig=rolling_ig)
 
             if self.modee_radioButton_3p_3m.isChecked():
                 print("Fitting as 3 Pulses with have mixed decays")
-                p3_3m.p3_3m(m_s=m_s,m_s_e=m_s_e,freqs=freqs,p_times=p_times,f_i=f_i,f_f=f_f,t_i=t_i,t_f=t_f,ig=init_guess_3pulse_3mixed,ub=ub_3pulse_3mixed,lb=lb_3pulse_3mixed, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale)
+                p3_3m.p3_3m(m_s=m_s,m_s_e=m_s_e,freqs=freqs,p_times=p_times,f_i=f_i,f_f=f_f,t_i=t_i,t_f=t_f,ig=init_guess_3pulse_3mixed,ub=ub_3pulse_3mixed,lb=lb_3pulse_3mixed, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale,rolling_ig=rolling_ig)
 
             if self.modee_radioButton_4p_s.isChecked():
                 print("Fitting as 4 Separate Pulses")
-                p4_s.p4_s(m_s=m_s,m_s_e=m_s_e,freqs=freqs,p_times=p_times,f_i=f_i,f_f=f_f,t_i=t_i,t_f=t_f,ig=init_guess_4pulse_separate,ub=ub_4pulse_separate,lb=lb_4pulse_separate, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale)
+                p4_s.p4_s(m_s=m_s,m_s_e=m_s_e,freqs=freqs,p_times=p_times,f_i=f_i,f_f=f_f,t_i=t_i,t_f=t_f,ig=init_guess_4pulse_separate,ub=ub_4pulse_separate,lb=lb_4pulse_separate, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale,rolling_ig=rolling_ig)
 
             if self.modee_radioButton_4p_2m.isChecked():
                 print("Fitting as 4 Pulses 2 of which have mixed decays")
-                p4_2m.p4_2m(m_s=m_s,m_s_e=m_s_e,freqs=freqs,p_times=p_times,f_i=f_i,f_f=f_f,t_i=t_i,t_f=t_f,ig=init_guess_4pulse_2mixed,ub=ub_4pulse_2mixed,lb=lb_4pulse_2mixed, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale)
+                p4_2m.p4_2m(m_s=m_s,m_s_e=m_s_e,freqs=freqs,p_times=p_times,f_i=f_i,f_f=f_f,t_i=t_i,t_f=t_f,ig=init_guess_4pulse_2mixed,ub=ub_4pulse_2mixed,lb=lb_4pulse_2mixed, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale,rolling_ig=rolling_ig)
 
             if self.modee_radioButton_4p_2_2m.isChecked():
                 print("Fitting as 4 Pulses with 2 sets of 2 mixed decays")
-                p4_2_2m.p4_2_2m(m_s=m_s,m_s_e=m_s_e,freqs=freqs,p_times=p_times,f_i=f_i,f_f=f_f,t_i=t_i,t_f=t_f,ig=init_guess_4pulse_2_2mixed,ub=ub_4pulse_2_2mixed,lb=lb_4pulse_2_2mixed, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale)
+                p4_2_2m.p4_2_2m(m_s=m_s,m_s_e=m_s_e,freqs=freqs,p_times=p_times,f_i=f_i,f_f=f_f,t_i=t_i,t_f=t_f,ig=init_guess_4pulse_2_2mixed,ub=ub_4pulse_2_2mixed,lb=lb_4pulse_2_2mixed, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale,rolling_ig=rolling_ig)
 
             if self.modee_radioButton_4p_3m.isChecked():
                 print("Fitting as 4 Pulses 3 of which have mixed decays")
-                p4_3m.p4_3m(m_s=m_s,m_s_e=m_s_e,freqs=freqs,p_times=p_times,f_i=f_i,f_f=f_f,t_i=t_i,t_f=t_f,ig=init_guess_4pulse_3mixed,ub=ub_4pulse_3mixed,lb=lb_4pulse_3mixed, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale)
+                p4_3m.p4_3m(m_s=m_s,m_s_e=m_s_e,freqs=freqs,p_times=p_times,f_i=f_i,f_f=f_f,t_i=t_i,t_f=t_f,ig=init_guess_4pulse_3mixed,ub=ub_4pulse_3mixed,lb=lb_4pulse_3mixed, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale,rolling_ig=rolling_ig)
 
             if self.modee_radioButton_4p_4m.isChecked():
                 print("Fitting as 4 Pulses with have mixed decays")
-                p4_4m.p4_4m(m_s=m_s,m_s_e=m_s_e,freqs=freqs,p_times=p_times,f_i=f_i,f_f=f_f,t_i=t_i,t_f=t_f,ig=init_guess_4pulse_4mixed,ub=ub_4pulse_4mixed,lb=lb_4pulse_4mixed, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale)
+                p4_4m.p4_4m(m_s=m_s,m_s_e=m_s_e,freqs=freqs,p_times=p_times,f_i=f_i,f_f=f_f,t_i=t_i,t_f=t_f,ig=init_guess_4pulse_4mixed,ub=ub_4pulse_4mixed,lb=lb_4pulse_4mixed, f_unit=self.f_unit, b_unit=self.b_unit, t_unit= self.t_unit, log_scale=log_scale,rolling_ig=rolling_ig)
 
         def press_suggest_params(self):
 
@@ -1498,6 +1511,7 @@ class Ui_PIP_Decomp_Fitter(QtWidgets.QWidget):
         _translate = QtCore.QCoreApplication.translate
         PIP_Decomp_Fitter.setWindowTitle(_translate("PIP_Decomp_Fitter", "PIP Decomp Pulse Fitter"))
         self.label_log_scale.setText(_translate("PIP_Decomp_Fitter","Log Scale"))
+        self.label_rolling_ig.setText(_translate("PIP_Decomp_Fitter", "Fit Next Guess"))
         self.Label_a_1.setText(_translate("PIP_Decomp_Fitter", "a"))
         self.Label_a_2.setText(_translate("PIP_Decomp_Fitter", "a"))
         self.Label_a_3.setText(_translate("PIP_Decomp_Fitter", "a"))

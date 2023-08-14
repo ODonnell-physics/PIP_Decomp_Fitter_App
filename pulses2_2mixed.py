@@ -10,7 +10,7 @@ import os
 import numpy as np 
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-
+from scipy.signal import fftconvolve as fftconvolve
 
 def model(t, a1, mu1, sig1, tau_fast, a2, mu2, sig2,  tau_slow, w):
     try:
@@ -27,8 +27,8 @@ def model(t, a1, mu1, sig1, tau_fast, a2, mu2, sig2,  tau_slow, w):
     sumdecay = w * decay_fast + (1-w)*decay_slow
 
 
-    flux1 = np.convolve(pulse1, sumdecay)
-    flux2 = np.convolve(pulse2, sumdecay)
+    flux1 = fftconvolve(pulse1, sumdecay)
+    flux2 = fftconvolve(pulse2, sumdecay)
 
     t_l = len(t)
     test_signal = (flux1+flux2)[0:t_l] + np.min(np.abs(measured_signal2))
@@ -36,7 +36,7 @@ def model(t, a1, mu1, sig1, tau_fast, a2, mu2, sig2,  tau_slow, w):
     return test_signal
 
 
-def p2_2m(m_s,m_s_e,freqs,p_times,f_i,f_f,t_i,t_f,ig,ub,lb,plotter=True, f_unit="GHz", b_unit="SFU", t_unit="s",log_scale=False):
+def p2_2m(m_s,m_s_e,freqs,p_times,f_i,f_f,t_i,t_f,ig,ub,lb,plotter=True, f_unit="GHz", b_unit="SFU", t_unit="s", log_scale=False, rolling_ig=False):
     
     def model(t,a1,mu1,sig1,tau_fast,a2,mu2,sig2,tau_slow,w):
     
@@ -49,8 +49,8 @@ def p2_2m(m_s,m_s_e,freqs,p_times,f_i,f_f,t_i,t_f,ig,ub,lb,plotter=True, f_unit=
         sumdecay= w*decay_fast+(1-w)*decay_slow
 
         
-        flux1=np.convolve(pulse1, sumdecay)
-        flux2=np.convolve(pulse2, sumdecay)
+        flux1=fftconvolve(pulse1, sumdecay)
+        flux2=fftconvolve(pulse2, sumdecay)
 
         t_l = len(t)
         test_signal=(flux1+flux2)[0:t_l]+np.min(np.abs(measured_signal2))
@@ -120,6 +120,7 @@ def p2_2m(m_s,m_s_e,freqs,p_times,f_i,f_f,t_i,t_f,ig,ub,lb,plotter=True, f_unit=
             ans,cov = fit
             fit_a1,fit_mu1,fit_sig1,fit_tau_fast,fit_a2,fit_mu2,fit_sig2,fit_tau_slow, fit_w = ans
             fit_sa1,fit_smu1,fit_ssig1,fit_stau_fast,fit_sa2,fit_smu2,fit_ssig2,fit_stau_slow, fit_sw = np.sqrt(np.diag(cov))
+            if rolling_ig: ig = ans
                 
         
             results_error= np.array([fit_sa1,fit_smu1,fit_ssig1,fit_stau_fast,fit_sa2,fit_smu2,fit_ssig2,fit_stau_slow,fit_sw])
@@ -138,8 +139,8 @@ def p2_2m(m_s,m_s_e,freqs,p_times,f_i,f_f,t_i,t_f,ig,ub,lb,plotter=True, f_unit=
             sumdecay= fit_w*decay1+(1-fit_w)*decay2
 
             
-            flux1=np.convolve(pulse1, sumdecay)
-            flux2=np.convolve(pulse2, sumdecay)
+            flux1=fftconvolve(pulse1, sumdecay)
+            flux2=fftconvolve(pulse2, sumdecay)
         
             
             result[:,f-f_i]=results
@@ -418,4 +419,4 @@ def p2_2m(m_s,m_s_e,freqs,p_times,f_i,f_f,t_i,t_f,ig,ub,lb,plotter=True, f_unit=
             print("Error, No fit found")
 
     else:
-        return ans, xirs[1]
+        return ans, xirs[1], cov

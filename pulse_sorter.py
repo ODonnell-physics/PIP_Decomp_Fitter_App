@@ -3,26 +3,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+from scipy.signal import fftconvolve as fftconvolve
 
-import pulses1 as p1
-import pulses1_m as p1_m
-import pulses2_separate as p2_s
-import pulses2_2mixed as p2_2m
-import pulses3_separate as p3_s
-import pulses3_2mixed as p3_2m
-import pulses3_3mixed as p3_3m
-import pulses4_separate as p4_s
-import pulses4_2mixed as p4_2m
-import pulses4_2_2mixed as p4_2_2m
-import pulses4_3mixed as p4_3m
-import pulses4_4mixed as p4_4m
+
 
 def model_1pulse(t,a1,mu1,sig1,tau1):
 
     
     pulse1=a1*np.exp(-.5*((t-mu1)/sig1)**2)
     decay1=np.exp(-t / tau1)
-    flux1=np.convolve(pulse1, decay1)
+    flux1=fftconvolve(pulse1, decay1)
     
 
     test_signal= flux1
@@ -40,18 +30,31 @@ def model_1pulse(t,a1,mu1,sig1,tau1):
 ###############################################################################################################
 
 def sorter(m_s, m_s_e, freqs, p_times,guess, min_g, max_g, t_i, t_f, f):
-
+    import pulses1 as p1
+    import pulses1_m as p1_m
+    import pulses2_separate as p2_s
+    import pulses2_2mixed as p2_2m
+    import pulses3_separate as p3_s
+    import pulses3_2mixed as p3_2m
+    import pulses3_3mixed as p3_3m
+    import pulses4_separate as p4_s
+    import pulses4_2mixed as p4_2m
+    import pulses4_2_2mixed as p4_2_2m
+    import pulses4_3mixed as p4_3m
+    import pulses4_4mixed as p4_4m
     s_l= t_f - t_i
 
 
-    xirs=np.zeros([13])
-    xirs[0:13]=np.nan
+    xirs=np.zeros([12])
+    xirs[0:12]=np.nan
 
     model_results = np.zeros([12,18])
     model_results[:,:] = np.nan
 
     model_flag=np.zeros([12])
     model_flag[0:12]=0.0
+
+    model_error= np.zeros([12])
 
 
 
@@ -134,14 +137,28 @@ def sorter(m_s, m_s_e, freqs, p_times,guess, min_g, max_g, t_i, t_f, f):
         temp_m_s = np.append(temp_m_s, np.transpose(t1),axis=0)
         temp_m_s_e = np.append(temp_m_s_e, np.transpose(te),axis=0)
         time= np.append(time,time[s_l-2])
+        import pulses1 as p1
+        import pulses1_m as p1_m
+        import pulses2_separate as p2_s
+        import pulses2_2mixed as p2_2m
+        import pulses3_separate as p3_s
+        import pulses3_2mixed as p3_2m
+        import pulses3_3mixed as p3_3m
+        import pulses4_separate as p4_s
+        import pulses4_2mixed as p4_2m
+        import pulses4_2_2mixed as p4_2_2m
+        import pulses4_3mixed as p4_3m
+        import pulses4_4mixed as p4_4m
 
 
 
     try:
 
-        ans_1pulse, xirs[0] = p1.p1(m_s=temp_m_s, m_s_e=temp_m_s_e, freqs=freqs, p_times=p_times, f_i=0, f_f=2, t_i=0, t_f=s_l,
+        ans_1pulse, xirs[0], cov = p1.p1(m_s=temp_m_s, m_s_e=temp_m_s_e, freqs=freqs, p_times=p_times, f_i=0, f_f=2, t_i=0, t_f=s_l,
               ig=init_guess_1pulse, ub=ub_1pulse, lb=lb_1pulse, plotter=False)
         model_results[0, 0:(len(ans_1pulse))] = ans_1pulse
+        model_error[0]= np.max(np.divide(np.sqrt(np.diag(cov)),ans_1pulse))
+
 
 
 
@@ -152,9 +169,10 @@ def sorter(m_s, m_s_e, freqs, p_times,guess, min_g, max_g, t_i, t_f, f):
 
 
     try:
-        ans_1pulse_mixed, xirs[11]= p1_m.p1_m(m_s=temp_m_s, m_s_e=temp_m_s_e, freqs=freqs, p_times=p_times, f_i=0, f_f=2, t_i=0, t_f=s_l,
+        ans_1pulse_mixed, xirs[11], cov= p1_m.p1_m(m_s=temp_m_s, m_s_e=temp_m_s_e, freqs=freqs, p_times=p_times, f_i=0, f_f=2, t_i=0, t_f=s_l,
                   ig=init_guess_1pulse_mixed, ub=ub_1pulse_mixed, lb=lb_1pulse_mixed,plotter=False)
         model_results[11,0:(len(ans_1pulse_mixed))]=ans_1pulse_mixed
+        model_error[11] = np.max(np.divide(np.sqrt(np.diag(cov)), ans_1pulse_mixed))
 
     except:
         xirs[11]=np.nan
@@ -164,8 +182,9 @@ def sorter(m_s, m_s_e, freqs, p_times,guess, min_g, max_g, t_i, t_f, f):
 
     try:
 
-        ans_2pulse_separate,xirs[1] = p2_s.p2_s(m_s=temp_m_s, m_s_e=temp_m_s_e, freqs=freqs,p_times=p_times, f_i=0, f_f=2, t_i=0, t_f=s_l, ig=init_guess_2pulse_separate, ub=ub_2pulse_separate, lb=lb_2pulse_separate, plotter=False)
+        ans_2pulse_separate,xirs[1], cov = p2_s.p2_s(m_s=temp_m_s, m_s_e=temp_m_s_e, freqs=freqs,p_times=p_times, f_i=0, f_f=2, t_i=0, t_f=s_l, ig=init_guess_2pulse_separate, ub=ub_2pulse_separate, lb=lb_2pulse_separate, plotter=False)
         model_results[1, 0:(len(ans_2pulse_separate))] = ans_2pulse_separate
+        model_error[1] = np.max(np.divide(np.sqrt(np.diag(cov)), ans_2pulse_separate))
 
     except:
         xirs[1]=np.nan
@@ -174,8 +193,9 @@ def sorter(m_s, m_s_e, freqs, p_times,guess, min_g, max_g, t_i, t_f, f):
 
     try:
 
-        ans_2pulse_mixed,xirs[2] = p2_2m.p2_2m(m_s=temp_m_s,m_s_e=temp_m_s_e,freqs=freqs,p_times=p_times,f_i=0,f_f=2,t_i=0, t_f=s_l,ig=init_guess_2pulse_mixed,ub=ub_2pulse_mixed,lb=lb_2pulse_mixed,plotter=False)
+        ans_2pulse_mixed, xirs[2], cov = p2_2m.p2_2m(m_s=temp_m_s,m_s_e=temp_m_s_e,freqs=freqs,p_times=p_times,f_i=0,f_f=2,t_i=0, t_f=s_l,ig=init_guess_2pulse_mixed,ub=ub_2pulse_mixed,lb=lb_2pulse_mixed,plotter=False)
         model_results[2, 0:(len(ans_2pulse_mixed))] = ans_2pulse_mixed
+        model_error[2] = np.max(np.divide(np.sqrt(np.diag(cov)), ans_2pulse_mixed))
 
     except:
         xirs[2]=np.nan
@@ -184,8 +204,9 @@ def sorter(m_s, m_s_e, freqs, p_times,guess, min_g, max_g, t_i, t_f, f):
 
 
     try:
-        ans_3pulse_separate,xirs[3] = p3_s.p3_s(m_s=temp_m_s,m_s_e=temp_m_s_e,freqs=freqs,p_times=p_times,f_i=0,f_f=2,t_i=0, t_f=s_l,ig=init_guess_3pulse_separate,ub=ub_3pulse_separate,lb=lb_3pulse_separate,plotter=False)
+        ans_3pulse_separate,xirs[3], cov = p3_s.p3_s(m_s=temp_m_s,m_s_e=temp_m_s_e,freqs=freqs,p_times=p_times,f_i=0,f_f=2,t_i=0, t_f=s_l,ig=init_guess_3pulse_separate,ub=ub_3pulse_separate,lb=lb_3pulse_separate,plotter=False)
         model_results[3, 0:(len(ans_3pulse_separate))] = ans_3pulse_separate
+        model_error[3] = np.max(np.divide(np.sqrt(np.diag(cov)), ans_3pulse_separate))
 
     except:
         xirs[3]=np.nan
@@ -193,8 +214,9 @@ def sorter(m_s, m_s_e, freqs, p_times,guess, min_g, max_g, t_i, t_f, f):
 
 
     try:
-        ans_3pulse_2mixed,xirs[4]= p3_2m.p3_2m(m_s=temp_m_s,m_s_e=temp_m_s_e,freqs=freqs,p_times=p_times,f_i=0,f_f=2,t_i=0, t_f=s_l,ig=init_guess_3pulse_2mixed,ub=ub_3pulse_2mixed,lb=lb_3pulse_2mixed,plotter=False)
+        ans_3pulse_2mixed,xirs[4], cov= p3_2m.p3_2m(m_s=temp_m_s,m_s_e=temp_m_s_e,freqs=freqs,p_times=p_times,f_i=0,f_f=2,t_i=0, t_f=s_l,ig=init_guess_3pulse_2mixed,ub=ub_3pulse_2mixed,lb=lb_3pulse_2mixed,plotter=False)
         model_results[4, :(len(ans_3pulse_2mixed))] = ans_3pulse_2mixed
+        model_error[4] = np.max(np.divide(np.sqrt(np.diag(cov)), ans_3pulse_2mixed))
 
 
     except:
@@ -203,8 +225,9 @@ def sorter(m_s, m_s_e, freqs, p_times,guess, min_g, max_g, t_i, t_f, f):
 
 
     try:
-        ans_3pulse_3mixed,xirs[5] = p3_3m.p3_3m(m_s=temp_m_s,m_s_e=temp_m_s_e,freqs=freqs,p_times=p_times,f_i=0,f_f=2,t_i=0, t_f=s_l,ig=init_guess_3pulse_3mixed,ub=ub_3pulse_3mixed,lb=lb_3pulse_3mixed,plotter=False)
+        ans_3pulse_3mixed,xirs[5], cov = p3_3m.p3_3m(m_s=temp_m_s,m_s_e=temp_m_s_e,freqs=freqs,p_times=p_times,f_i=0,f_f=2,t_i=0, t_f=s_l,ig=init_guess_3pulse_3mixed,ub=ub_3pulse_3mixed,lb=lb_3pulse_3mixed,plotter=False)
         model_results[5, 0:(len(ans_3pulse_3mixed))] = ans_3pulse_3mixed
+        model_error[5] = np.max(np.divide(np.sqrt(np.diag(cov)), ans_3pulse_3mixed))
 
     except:
         xirs[5]=np.nan
@@ -213,8 +236,9 @@ def sorter(m_s, m_s_e, freqs, p_times,guess, min_g, max_g, t_i, t_f, f):
 
     try:
 
-        ans_4pulse_separate, xirs[6] = p4_s.p4_s(m_s=temp_m_s,m_s_e=temp_m_s_e,freqs=freqs,p_times=p_times,f_i=0,f_f=2,t_i=0, t_f=s_l,ig=init_guess_4pulse_separate,ub=ub_4pulse_separate,lb=lb_4pulse_separate,plotter=False)
+        ans_4pulse_separate, xirs[6], cov = p4_s.p4_s(m_s=temp_m_s,m_s_e=temp_m_s_e,freqs=freqs,p_times=p_times,f_i=0,f_f=2,t_i=0, t_f=s_l,ig=init_guess_4pulse_separate,ub=ub_4pulse_separate,lb=lb_4pulse_separate,plotter=False)
         model_results[6, 0:(len(ans_4pulse_separate))] = ans_4pulse_separate
+        model_error[6] = np.max(np.divide(np.sqrt(np.diag(cov)), ans_4pulse_separate))
 
     except:
         xirs[6]=np.nan
@@ -222,18 +246,20 @@ def sorter(m_s, m_s_e, freqs, p_times,guess, min_g, max_g, t_i, t_f, f):
 
 
     try:
-        ans_4pulse_2mixed, xirs[7] = p4_2m.p4_2m(m_s=temp_m_s,m_s_e=temp_m_s_e,freqs=freqs,p_times=p_times,f_i=0,f_f=2,t_i=0, t_f=s_l,ig=init_guess_4pulse_2mixed,ub=ub_4pulse_2mixed,lb=lb_4pulse_2mixed,plotter=False)
+        ans_4pulse_2mixed, xirs[7], cov = p4_2m.p4_2m(m_s=temp_m_s,m_s_e=temp_m_s_e,freqs=freqs,p_times=p_times,f_i=0,f_f=2,t_i=0, t_f=s_l,ig=init_guess_4pulse_2mixed,ub=ub_4pulse_2mixed,lb=lb_4pulse_2mixed,plotter=False)
         model_results[7, :(len(ans_4pulse_2mixed))] = ans_4pulse_2mixed
+        model_error[7] = np.max(np.divide(np.sqrt(np.diag(cov)), ans_4pulse_2mixed))
 
     except:
         xirs[7]=np.nan
         model_flag[7]=np.nan
 
-    l=1
+
     try:
 
-        ans_4pulse_2_2mixed,xirs[8] = p4_2_2m.p4_2_2m(m_s=temp_m_s,m_s_e=temp_m_s_e,freqs=freqs,p_times=p_times,f_i=0,f_f=2,t_i=0, t_f=s_l,ig=init_guess_4pulse_2_2mixed,ub=ub_4pulse_2_2mixed,lb=lb_4pulse_2_2mixed,plotter=False)
+        ans_4pulse_2_2mixed,xirs[8], cov = p4_2_2m.p4_2_2m(m_s=temp_m_s,m_s_e=temp_m_s_e,freqs=freqs,p_times=p_times,f_i=0,f_f=2,t_i=0, t_f=s_l,ig=init_guess_4pulse_2_2mixed,ub=ub_4pulse_2_2mixed,lb=lb_4pulse_2_2mixed,plotter=False)
         model_results[8, 0:(len(ans_4pulse_2_2mixed))] = ans_4pulse_2_2mixed
+        model_error[8] = np.max(np.divide(np.sqrt(np.diag(cov)), ans_4pulse_2_2mixed))
 
 
     except:
@@ -244,8 +270,9 @@ def sorter(m_s, m_s_e, freqs, p_times,guess, min_g, max_g, t_i, t_f, f):
 
     try:
 
-        ans_4pulse_3mixed,xirs[9] = p4_3m.p4_3m(m_s=temp_m_s,m_s_e=temp_m_s_e,freqs=freqs,p_times=p_times,f_i=0,f_f=2,t_i=0, t_f=s_l,ig=init_guess_4pulse_3mixed,ub=ub_4pulse_3mixed,lb=lb_4pulse_3mixed,plotter=False)
+        ans_4pulse_3mixed,xirs[9], cov = p4_3m.p4_3m(m_s=temp_m_s,m_s_e=temp_m_s_e,freqs=freqs,p_times=p_times,f_i=0,f_f=2,t_i=0, t_f=s_l,ig=init_guess_4pulse_3mixed,ub=ub_4pulse_3mixed,lb=lb_4pulse_3mixed,plotter=False)
         model_results[9, 0:(len(ans_4pulse_3mixed))] = ans_4pulse_3mixed
+        model_error[9] = np.max(np.divide(np.sqrt(np.diag(cov)), ans_4pulse_3mixed))
 
     except:
         xirs[9]=np.nan
@@ -255,8 +282,9 @@ def sorter(m_s, m_s_e, freqs, p_times,guess, min_g, max_g, t_i, t_f, f):
 
     try:
 
-        ans_4pulse_4mixed,xirs[10] = p4_4m.p4_4m(m_s=temp_m_s,m_s_e=temp_m_s_e,freqs=freqs,p_times=p_times,f_i=0,f_f=2,t_i=0, t_f=s_l,ig=init_guess_4pulse_4mixed,ub=ub_4pulse_4mixed,lb=lb_4pulse_4mixed,plotter=False)
+        ans_4pulse_4mixed,xirs[10], cov = p4_4m.p4_4m(m_s=temp_m_s,m_s_e=temp_m_s_e,freqs=freqs,p_times=p_times,f_i=0,f_f=2,t_i=0, t_f=s_l,ig=init_guess_4pulse_4mixed,ub=ub_4pulse_4mixed,lb=lb_4pulse_4mixed,plotter=False)
         model_results[10, :(len(ans_4pulse_4mixed))] = ans_4pulse_4mixed
+        model_error[10] = np.max(np.divide(np.sqrt(np.diag(cov)), ans_4pulse_4mixed))
 
 
     except:
@@ -265,9 +293,39 @@ def sorter(m_s, m_s_e, freqs, p_times,guess, min_g, max_g, t_i, t_f, f):
 
 
 
-    good_models = np.where(np.logical_and(xirs >= np.nanmin(xirs[np.nonzero(xirs)]), xirs <= 1.2 * np.nanmin(xirs[np.nonzero(xirs)])))
-    best_model = np.where(xirs == np.nanmin(xirs[np.nonzero(xirs)]))
+    #good_models = np.where(np.logical_and(np.logical_and(xirs >= np.nanmin(xirs[np.nonzero(xirs)]), xirs <= 1.6 * np.nanmin(xirs[np.nonzero(xirs)])),model_error <=.5))
+
+    good_error_models = np.where(model_error <= 1)
+    try:
+        good_xi_models = np.where(np.logical_and(xirs >= np.nanmin(xirs[np.nonzero(xirs)]), xirs <= 1.5 * np.nanmin(xirs[np.nonzero(xirs)])))
+
+    except:
+        good_xi_models=[0]
+
+    good_models=np.intersect1d(good_error_models,good_xi_models)
+    if good_models ==[]:
+        good_models=np.unique(np.concatenate((good_error_models,good_xi_models),0))
+        print("No Models Below 1.5 times the maximum Xi^2 with Model Errors within tolerance")
+
+    good_xirs= xirs[good_models]
+    best_model = [0]
+
+    try:
+        best_model = np.array([good_models[0][np.where(good_xirs == np.nanmin(good_xirs[np.nonzero(good_xirs)]))[0][0]]])
+    except:
+        pass
+    try:
+        best_model = np.array([good_models[np.where(good_xirs == np.nanmin(good_xirs[np.nonzero(good_xirs)]))[0][0]]])
+    except:
+        pass
+    try:
+        best_model=[best_model]
+    except:
+        pass
+
     fit_model=[]
+
+
     if best_model==[]: best_model=[0]
     try:
         best_model=best_model[0]
@@ -283,6 +341,7 @@ def sorter(m_s, m_s_e, freqs, p_times,guess, min_g, max_g, t_i, t_f, f):
 
 
     l=1
+
     if flag==0:
         if best_model[0]==[0]:
             fit_model= ans_1pulse
@@ -346,51 +405,51 @@ def sorter(m_s, m_s_e, freqs, p_times,guess, min_g, max_g, t_i, t_f, f):
 
 
     if np.any(np.isin(good_models,0)):
-        print("1 Pulse is the good fit with Reduced Xi^2 of ",xirs[0])
+        print("1 Pulse is the good fit with Reduced Xi^2 of ",xirs[0], 'with average parameter error of', model_error[0])
         model_flag[0]=1
 
     if np.any(np.isin(good_models,11)):
-        print("1 Pulse with 2 decays is the good fit with Reduced Xi^2 of ",xirs[11])
+        print("1 Pulse with 2 decays is the good fit with Reduced Xi^2 of ",xirs[11], 'with average parameter error of', model_error[11])
         model_flag[11]=1
 
     if np.any(np.isin(good_models,1)):
-        print("2 Separate Pulses is the good fit with Reduced Xi^2 of ",xirs[1])
+        print("2 Separate Pulses is the good fit with Reduced Xi^2 of ",xirs[1], 'with average parameter error of', model_error[1])
         model_flag[1]=1
 
     if np.any(np.isin(good_models,2)):
-        print("2 Pulses with mixed decays  is the good fit with Reduced Xi^2 of ",xirs[2])
+        print("2 Pulses with mixed decays  is the good fit with Reduced Xi^2 of ",xirs[2], 'with average parameter error of', model_error[2])
         model_flag[2]=1
 
     if np.any(np.isin(good_models,3)):
-        print("3 Separate Pulses is the good fit with Reduced Xi^2 of ",xirs[3])
+        print("3 Separate Pulses is the good fit with Reduced Xi^2 of ",xirs[3], 'with average parameter error of', model_error[3])
         model_flag[3]=1
 
     if np.any(np.isin(good_models,4)):
-        print("3 Pulses 2 of which have mixed decays is the good fit with Reduced Xi^2 of ",xirs[4])
+        print("3 Pulses 2 of which have mixed decays is the good fit with Reduced Xi^2 of ",xirs[4], 'with average parameter error of', model_error[4])
         model_flag[4]=1
 
     if np.any(np.isin(good_models,5)):
-        print("3 Pulses all of which have mixed decays is the good fit with Reduced Xi^2 of ",xirs[5])
+        print("3 Pulses all of which have mixed decays is the good fit with Reduced Xi^2 of ",xirs[5], 'with average parameter error of', model_error[5])
         model_flag[5]=1
 
     if np.any(np.isin(good_models,6)):
-        print("4 Separate Pulses is the good fit with Reduced Xi^2 of ",xirs[6])
+        print("4 Separate Pulses is the good fit with Reduced Xi^2 of ",xirs[6], 'with average parameter error of', model_error[6])
         model_flag[6]=1
 
     if np.any(np.isin(good_models,7)):
-        print("4 Pulses 2 of which have mixed decays is the good fit with Reduced Xi^2 of ",xirs[7])
+        print("4 Pulses 2 of which have mixed decays is the good fit with Reduced Xi^2 of ",xirs[7], 'with average parameter error of', model_error[7])
         model_flag[7]=1
 
     if np.any(np.isin(good_models,8)):
-        print("4 Pulses with 2 sets of 2 mixed decays is the good fit with Reduced Xi^2 of ",xirs[8])
+        print("4 Pulses with 2 sets of 2 mixed decays is the good fit with Reduced Xi^2 of ",xirs[8], 'with average parameter error of', model_error[8])
         model_flag[8]=1
 
     if np.any(np.isin(good_models,9)):
-        print("4 Pulses 3 of which have mixed decays is the good fit with Reduced Xi^2 of ",xirs[9])
+        print("4 Pulses 3 of which have mixed decays is the good fit with Reduced Xi^2 of ",xirs[9], 'with average parameter error of', model_error[9])
         model_flag[9]=1
 
     if np.any(np.isin(good_models,10)):
-        print("4 Pulses all of which have mixed decays is the good fit with Reduced Xi^2 of ",xirs[10])
+        print("4 Pulses all of which have mixed decays is the good fit with Reduced Xi^2 of ",xirs[10], 'with average parameter error of', model_error[10])
         model_flag[10]=1
 
 
