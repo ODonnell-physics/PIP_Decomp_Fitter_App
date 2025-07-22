@@ -143,9 +143,9 @@ def p2_s(m_s,m_s_e,freqs,p_times,f_i,f_f,t_i,t_f,ig,ub,lb,plotter=True, f_unit="
                 ax.plot(measured_signal2,'.',label="Eovsa", color='red')
                 ax.plot(model(time,fit_a1,fit_mu1,fit_sig1,fit_tau1,fit_a2,fit_mu2,fit_sig2,fit_tau2), color='black', label="Fit")
                 ax.set_xlabel('Time ('+t_unit+')')
-                ax.set_ylabel('Region Flux ('+ b_unit +')')
+                ax.set_ylabel('Region Flux (' + b_unit + ')')
                 ax.set_xlim(0,s_l)
-                ax.set_yscale('log')
+                if log_scale: plt.yscale("log")
 
 
                 ax.set_title(str(fl[f])+ ''+ f_unit +' reduced Xi^2 = %.3f' %xir)
@@ -332,8 +332,6 @@ def p2_s(m_s,m_s_e,freqs,p_times,f_i,f_f,t_i,t_f,ig,ub,lb,plotter=True, f_unit="
             ####
 
             fig, ax = plt.subplots(2, 2, figsize=(16, 10))
-
-
 
             ax[0][0].errorbar(fl[f_i:f_f], result[0, 0:f_w], yerr=result_error[0, 0:f_w], fmt='.', label="Amp 1", color='darkorange')
             ax[0][0].errorbar(fl[f_i:f_f], result[4, 0:f_w], yerr=result_error[4, 0:f_w], fmt='.', label="Amp 2", color='navy')

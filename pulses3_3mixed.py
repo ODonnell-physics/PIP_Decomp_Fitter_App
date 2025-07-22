@@ -88,6 +88,8 @@ def p3_3m(m_s,m_s_e,freqs,p_times,f_i,f_f,t_i,t_f,ig,ub,lb, plotter=True, f_unit
     flux2_spec = np.zeros([f_w, s_l_])
     flux3_spec = np.zeros([f_w, s_l_])
 
+    diff_spec = np.zeros([f_w, s_l_])
+
     if plotter:
         if not os.path.exists('./3_pulses_3_mixed_fit'):
             os.makedirs('./3_pulses_3_mixed_fit')
@@ -157,6 +159,8 @@ def p3_3m(m_s,m_s_e,freqs,p_times,f_i,f_f,t_i,t_f,ig,ub,lb, plotter=True, f_unit
             flux1_spec[f-f_i,:]=flux1[0:s_l]
             flux2_spec[f-f_i,:]=flux2[0:s_l]
             flux3_spec[f-f_i,:]=flux3[0:s_l]
+
+            diff_spec[f - f_i, :] = diff[0:s_l]
 
             current_mdl= model(time,fit_a1,fit_mu1,fit_sig1,fit_tau1,fit_a2,fit_mu2,fit_sig2,fit_tau2,fit_a3,fit_mu3,fit_sig3,fit_w)[0:s_l]
             diff=measured_signal2- current_mdl
@@ -457,6 +461,8 @@ def p3_3m(m_s,m_s_e,freqs,p_times,f_i,f_f,t_i,t_f,ig,ub,lb, plotter=True, f_unit
             result_2 = np.append(parms,result_2,1)
             np.savetxt(pref+"params.csv", result_2, delimiter=",", fmt="%s")
 
+            #ans_dif=np.transpose(m_s[t_i:t_f, f_i:f_f])-flux1_spec[0:f_w, :] - flux2_spec[0:f_w, :] - flux3_spec[0:f_w, :]
+            #np.savez(pref+'ans_dif.npz',m_s=np.transpose(ans_dif),  m_s_e=m_s_e, freqs=fl[f_i:f_f])
 
 
         except:

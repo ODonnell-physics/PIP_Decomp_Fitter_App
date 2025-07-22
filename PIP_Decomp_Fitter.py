@@ -744,7 +744,7 @@ class Ui_PIP_Decomp_Fitter(QtWidgets.QWidget):
             t_i = int(self.inp_Time_range_min.toPlainText())
             t_f = int(self.inp_Time_range_max.toPlainText())
             s_l= int(p_times[t_f] - p_times[t_i])
-            time = np.arange(1, s_l)
+            time = np.arange(0, s_l)   ###not np.arange(1, s_l)!!!!
             guess, min_g, max_g = check_guess()
 
             if self.modee_log_scale_check.isChecked(): self._static_ax.set_yscale("log")

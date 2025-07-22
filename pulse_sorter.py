@@ -295,15 +295,15 @@ def sorter(m_s, m_s_e, freqs, p_times,guess, min_g, max_g, t_i, t_f, f):
 
     #good_models = np.where(np.logical_and(np.logical_and(xirs >= np.nanmin(xirs[np.nonzero(xirs)]), xirs <= 1.6 * np.nanmin(xirs[np.nonzero(xirs)])),model_error <=.5))
 
-    good_error_models = np.where(model_error <= 1)
+    good_error_models = np.where(np.logical_and(model_error <= 1,model_error >= 0.001)) #####
     try:
-        good_xi_models = np.where(np.logical_and(xirs >= np.nanmin(xirs[np.nonzero(xirs)]), xirs <= 1.5 * np.nanmin(xirs[np.nonzero(xirs)])))
+        good_xi_models = np.where(np.logical_and(xirs >= np.nanmin(xirs[np.nonzero(xirs)]), xirs <= 1.5)) #* np.nanmin(xirs[np.nonzero(xirs)])))
 
     except:
         good_xi_models=[0]
 
     good_models=np.intersect1d(good_error_models,good_xi_models)
-    if good_models ==[]:
+    if good_models[0] ==[]:
         good_models=np.unique(np.concatenate((good_error_models,good_xi_models),0))
         print("No Models Below 1.5 times the maximum Xi^2 with Model Errors within tolerance")
 
@@ -402,7 +402,7 @@ def sorter(m_s, m_s_e, freqs, p_times,guess, min_g, max_g, t_i, t_f, f):
 
 
 
-
+    x=1
 
     if np.any(np.isin(good_models,0)):
         print("1 Pulse is the good fit with Reduced Xi^2 of ",xirs[0], 'with average parameter error of', model_error[0])

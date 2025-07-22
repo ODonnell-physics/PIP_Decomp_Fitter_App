@@ -111,7 +111,7 @@ def p1_m(m_s, m_s_e, freqs,p_times, f_i, f_f, t_i, t_f, ig, ub, lb, plotter=True
 
             current_mdl = model(time, fit_a1, fit_mu1, fit_sig1, fit_tau1, fit_tau2, fit_w)[0:s_l]
             diff = measured_signal2[0:s_l] - current_mdl[0:s_l]
-            xi1 = diff ** 2 / (measured_signal2e[0:s_l])
+            xi1 = diff ** 2 / (measured_signal2e[0:s_l]**2)
             # xi1[56:60]=0
             xir = np.sum(xi1) / (s_l - len(ans))
             xirs[f-f_i] = xir

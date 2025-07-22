@@ -467,6 +467,8 @@ def p3_s(m_s,m_s_e,freqs,p_times,f_i,f_f,t_i,t_f,ig,ub,lb,plotter=True, f_unit="
 
 
 
+
+
         except:
             print("Error, No fit found")
 

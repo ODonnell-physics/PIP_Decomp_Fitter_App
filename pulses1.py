@@ -118,7 +118,7 @@ def p1(m_s, m_s_e, freqs, p_times, f_i, f_f, t_i, t_f, ig, ub, lb, plotter=True,
 
             if plotter:
                 plt.plot(pulse1 + np.min(np.abs(measured_signal2)),'--', label="Fit Pulse 1", color='darkorange')
-                plt.plot(measured_signal2,'.', label="Eovsa", color='red')
+                plt.plot(measured_signal2,'.',ls='-', label="Eovsa", color='red')
                 plt.plot(flux1, color='black', label="Fit")
                 plt.xlabel('Time ('+t_unit+')'), plt.ylabel('Region Flux ('+ b_unit +')')
                 plt.xlim(0, s_l)
